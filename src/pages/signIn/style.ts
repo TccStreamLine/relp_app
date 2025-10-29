@@ -3,20 +3,20 @@ import { StyleSheet, Dimensions } from 'react-native';
 export const style = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F7F5FF',
+        backgroundColor: '#FFFFFF',
     },
     header: {
         paddingTop: 50,
         paddingHorizontal: 20,
+        backgroundColor: '#E9E3FF',
     },
     topSection: {
         backgroundColor: '#E9E3FF',
         paddingHorizontal: 20,
-        paddingBottom: 40,
+        paddingBottom: 60,
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
         position: 'relative',
-        overflow: 'hidden',
     },
     title: {
         fontSize: 28,
@@ -25,20 +25,23 @@ export const style = StyleSheet.create({
         width: '60%',
         marginTop: 20,
     },
-    imagePlaceholder: {
-        width: 120,
-        height: 180,
-        backgroundColor: '#D8BFD8',
+    
+    
+    blocksImage: {
+        
+        width: 150, 
+        height: 250, 
         position: 'absolute',
-        right: 20,
-        top: 40,
-        borderRadius: 10,
+        right: 15,
+        top: 30,
         transform: [{ rotate: '15deg' }]
     },
+    
+
     form: {
         flex: 1,
         padding: 30,
-        marginTop: 20,
+        marginTop: 10,
     },
     label: {
         fontSize: 16,

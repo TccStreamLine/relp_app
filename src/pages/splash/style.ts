@@ -8,7 +8,7 @@ export const style = StyleSheet.create({
         justifyContent: 'center',
     },
     logo: {
-        width: 200,
-        height: 100,
+        width: 700,
+        height: 500,
     },
 });

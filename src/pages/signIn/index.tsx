@@ -1,9 +1,59 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react'; 
+import { View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { style } from './style';
 
+const blocksImage = require('../../assets/caixa.png');
+
+const SEU_IP_LOCAL = '192.168.15.3'; 
+const API_URL = 'http://192.168.15.3/relp_api';
+
+
 export default function SignIn({ navigation }: { navigation: any }) {
+
+    
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    
+    const handleLogin = async () => {
+        if (email === '' || password === '') {
+            Alert.alert('Erro', 'Por favor, preencha o email e a senha.');
+            return;
+        }
+
+        try {
+            
+            const response = await fetch(`${API_URL}/login.php`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                
+                body: JSON.stringify({
+                    email: email,
+                    senha: password
+                })
+            });
+
+            const data = await response.json(); 
+
+            if (data.success) {
+               
+                navigation.replace('Home');
+            } else {
+                
+                Alert.alert('Falha no Login', data.message);
+            }
+
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique seu IP e se o XAMPP está rodando.');
+        }
+    };
+
+
     return (
         <View style={style.container}>
             <View style={style.header}>
@@ -14,7 +64,11 @@ export default function SignIn({ navigation }: { navigation: any }) {
 
             <View style={style.topSection}>
                 <Text style={style.title}>FACILITANDO SUA VIDA DE CEO!</Text>
-                <View style={style.imagePlaceholder} />
+                <Image
+                    source={blocksImage}
+                    style={style.blocksImage}
+                    resizeMode="contain"
+                />
             </View>
 
             <View style={style.form}>
@@ -23,9 +77,12 @@ export default function SignIn({ navigation }: { navigation: any }) {
                     <Feather name="mail" size={20} color="#888" style={style.icon} />
                     <TextInput
                         style={style.input}
-                        placeholder="usuarioExistente@gmail.com"
+                        placeholder="Usuario@gmail.com"
+                        placeholderTextColor="#AAA"
                         keyboardType="email-address"
                         autoCapitalize="none"
+                        value={email} 
+                        onChangeText={setEmail} 
                     />
                 </View>
 
@@ -35,11 +92,15 @@ export default function SignIn({ navigation }: { navigation: any }) {
                     <TextInput
                         style={style.input}
                         placeholder="••••••••••"
+                        placeholderTextColor="#AAA"
                         secureTextEntry
+                        value={password} 
+                        onChangeText={setPassword} 
                     />
                 </View>
 
-                <TouchableOpacity style={style.signInButton}>
+                {/* Chama a função handleLogin ao clicar */}
+                <TouchableOpacity style={style.signInButton} onPress={handleLogin}>
                     <Text style={style.signInButtonText}>Entre aqui!</Text>
                 </TouchableOpacity>
 

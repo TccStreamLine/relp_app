@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Image, Animated } from 'react-native';
 import { style } from './style';
 
-// Usando o nome 'logo.png' (minúsculo) como você confirmou
+
 const logo = require('../../assets/logo.png');
 
 export default function Splash({ navigation }: { navigation: any }) {
