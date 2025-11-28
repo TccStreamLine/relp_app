@@ -6,9 +6,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { style } from './style';
 
 const screenWidth = Dimensions.get('window').width;
-const avatar = require('../../assets/doctor.png'); // Ou logo.png se preferir
+const avatar = require('../../assets/doctor.png'); 
 
-// --- ATENÇÃO: MANTENHA SEU LINK DO RAILWAY AQUI ---
 const API_URL = 'https://upbeat-creativity-production.up.railway.app'; 
 
 export default function Home({ navigation }: { navigation: any }) {
@@ -18,7 +17,7 @@ export default function Home({ navigation }: { navigation: any }) {
     const [data, setData] = useState({
         total: '0,00',
         grafico: { labels: [], datasets: [{ data: [0] }] },
-        recentes: [] // Array para a lista
+        recentes: [] 
     });
 
     const fetchData = async () => {
@@ -50,7 +49,6 @@ export default function Home({ navigation }: { navigation: any }) {
 
     return (
         <View style={style.container}>
-            {/* --- CABEÇALHO BRANCO --- */}
             <View style={style.header}>
                 <View style={style.headerTextContainer}>
                     <Text style={style.welcomeText}>Bem-vindo de volta,</Text>
@@ -63,7 +61,6 @@ export default function Home({ navigation }: { navigation: any }) {
                 showsVerticalScrollIndicator={false}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#4B0082']} />}
             >
-                {/* --- CARTÃO DE DESTAQUE (ROXO) --- */}
                 <View style={style.mainCard}>
                     <View>
                         <Text style={style.cardLabel}>Faturamento Total</Text>
@@ -77,43 +74,48 @@ export default function Home({ navigation }: { navigation: any }) {
                     </View>
                 </View>
 
-                {/* --- GRÁFICO --- */}
+                {/* --- GRÁFICO DOS ÚLTIMOS 7 DIAS --- */}
                 <View style={style.sectionContainer}>
-                    <Text style={style.sectionTitle}>Desempenho Mensal</Text>
+                    <Text style={style.sectionTitle}>Vendas da Semana (7 Dias)</Text>
                     <View style={style.chartCard}>
-                        <LineChart
-                            data={{
-                                labels: data.grafico.labels.length ? data.grafico.labels : ["-"],
-                                datasets: [{ data: data.grafico.datasets[0].data.length ? data.grafico.datasets[0].data : [0] }]
-                            }}
-                            width={screenWidth - 64} // Ajuste fino na largura
-                            height={220}
-                            yAxisLabel="R$"
-                            yAxisSuffix=""
-                            chartConfig={{
-                                backgroundColor: '#FFF',
-                                backgroundGradientFrom: '#FFF',
-                                backgroundGradientTo: '#FFF',
-                                decimalPlaces: 0,
-                                color: (opacity = 1) => `rgba(75, 0, 130, ${opacity})`, // Roxo
-                                labelColor: (opacity = 1) => `rgba(100, 100, 100, ${opacity})`,
-                                style: { borderRadius: 16 },
-                                propsForDots: { r: "5", strokeWidth: "2", stroke: "#4B0082" }
-                            }}
-                            bezier
-                            style={style.chartStyle}
-                            withInnerLines={false}
-                            withOuterLines={false}
-                        />
+                        {data.grafico.labels.length > 0 && !isLoading ? (
+                             <LineChart
+                                data={{
+                                    labels: data.grafico.labels,
+                                    datasets: [{ data: data.grafico.datasets[0].data }]
+                                }}
+                                width={screenWidth - 64} 
+                                height={220}
+                                yAxisLabel="R$"
+                                yAxisSuffix=""
+                                chartConfig={{
+                                    backgroundColor: '#FFF',
+                                    backgroundGradientFrom: '#FFF',
+                                    backgroundGradientTo: '#FFF',
+                                    decimalPlaces: 0,
+                                    color: (opacity = 1) => `rgba(75, 0, 130, ${opacity})`,
+                                    labelColor: (opacity = 1) => `rgba(100, 100, 100, ${opacity})`,
+                                    style: { borderRadius: 16 },
+                                    propsForDots: { r: "4", strokeWidth: "2", stroke: "#4B0082" }
+                                }}
+                                bezier
+                                style={style.chartStyle}
+                                withInnerLines={false}
+                                withOuterLines={false}
+                            />
+                        ) : (
+                            <View style={{height: 220, justifyContent: 'center', alignItems: 'center'}}>
+                                {isLoading ? <ActivityIndicator color="#4B0082" /> : <Text style={{color: '#999'}}>Sem dados nesta semana</Text>}
+                            </View>
+                        )}
                     </View>
                 </View>
 
-                {/* --- LISTA DE VENDAS RECENTES --- */}
                 <View style={[style.sectionContainer, { marginBottom: 40 }]}>
-                    <Text style={style.sectionTitle}>Vendas Recentes</Text>
+                    <Text style={style.sectionTitle}>Últimas Transações</Text>
                     
                     {data.recentes.length === 0 && !isLoading && (
-                        <Text style={{color: '#999', textAlign: 'center'}}>Nenhuma venda registrada.</Text>
+                        <Text style={{color: '#999', textAlign: 'center', marginTop: 10}}>Nenhuma venda recente.</Text>
                     )}
 
                     {data.recentes.map((venda: any, index) => (
@@ -123,18 +125,13 @@ export default function Home({ navigation }: { navigation: any }) {
                                     <Feather name="shopping-bag" size={24} color="#4B0082" />
                                 </View>
                                 <View style={style.transactionInfo}>
-                                    {/* CORREÇÃO AQUI: Usando venda.cliente ou venda.id */}
-                                    <Text style={style.transactionTitle}>
-                                        {venda.cliente ? venda.cliente : `Venda #${venda.id}`}
-                                    </Text>
+                                    <Text style={style.transactionTitle}>Venda #{venda.id}</Text>
                                     <Text style={style.transactionDate}>
-                                        {/* CORREÇÃO AQUI: Usando venda.data */}
-                                        {venda.data ? new Date(venda.data).toLocaleDateString('pt-BR') : 'Data desconhecida'}
+                                        {venda.data_venda ? new Date(venda.data_venda).toLocaleDateString('pt-BR') : '-'}
                                     </Text>
                                 </View>
                             </View>
-                            {/* CORREÇÃO AQUI: Usando venda.valor */}
-                            <Text style={style.transactionValue}>+ R$ {venda.valor}</Text>
+                            <Text style={style.transactionValue}>+ R$ {venda.valor_total}</Text>
                         </TouchableOpacity>
                     ))}
                 </View>
