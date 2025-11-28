@@ -1,97 +1,144 @@
-import React from 'react';
-import { View, Text, ScrollView, Image, Dimensions } from 'react-native';
-import { Feather, FontAwesome5 } from '@expo/vector-icons';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, Image, Dimensions, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
+import { useFocusEffect } from '@react-navigation/native';
 import { style } from './style';
 
-// Pegar a largura da tela para o gráfico
 const screenWidth = Dimensions.get('window').width;
+const avatar = require('../../assets/doctor.png'); // Ou logo.png se preferir
 
-// Dados de exemplo para o gráfico
-const chartData = {
-  labels: ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"],
-  datasets: [
-    {
-      data: [
-        6000,
-        5800,
-        4500,
-        7000,
-        6500,
-        8200
-      ],
-      color: (opacity = 1) => `rgba(75, 0, 130, ${opacity})`, // Cor Roxo
-      strokeWidth: 3
-    }
-  ],
-  legend: ["Lucro Mensal"] // Legenda
-};
-
-// Você precisará adicionar a imagem do "médico" na sua pasta assets
-const bannerImage = require('../../assets/doctor.png'); // <-- Adicione uma imagem sua aqui
+// --- ATENÇÃO: MANTENHA SEU LINK DO RAILWAY AQUI ---
+const API_URL = 'https://upbeat-creativity-production.up.railway.app'; 
 
 export default function Home({ navigation }: { navigation: any }) {
+    const [isLoading, setIsLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    
+    const [data, setData] = useState({
+        total: '0,00',
+        grafico: { labels: [], datasets: [{ data: [0] }] },
+        recentes: [] // Array para a lista
+    });
+
+    const fetchData = async () => {
+        try {
+            const response = await fetch(`${API_URL}/dashboard_api.php`);
+            const json = await response.json();
+
+            if (json.success) {
+                setData({
+                    total: json.total_vendas,
+                    grafico: json.grafico,
+                    recentes: json.vendas_recentes || []
+                });
+            }
+        } catch (error) {
+            console.error("Erro:", error);
+        } finally {
+            setIsLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    useFocusEffect(useCallback(() => { fetchData(); }, []));
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchData();
+    };
+
     return (
         <View style={style.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {/* --- CABEÇALHO --- */}
-                <View style={style.header}>
-                    <View style={style.headerLeft}>
-                        <FontAwesome5 name="circle" size={44} color="#4B0082" solid /> 
-                        {/* (Substitua por uma <Image> se tiver o avatar) */}
+            {/* --- CABEÇALHO BRANCO --- */}
+            <View style={style.header}>
+                <View style={style.headerTextContainer}>
+                    <Text style={style.welcomeText}>Bem-vindo de volta,</Text>
+                    <Text style={style.userName}>Mercado Adati</Text>
+                </View>
+                <Image source={avatar} style={style.profileImage} />
+            </View>
+
+            <ScrollView 
+                showsVerticalScrollIndicator={false}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#4B0082']} />}
+            >
+                {/* --- CARTÃO DE DESTAQUE (ROXO) --- */}
+                <View style={style.mainCard}>
+                    <View>
+                        <Text style={style.cardLabel}>Faturamento Total</Text>
+                        {isLoading ? 
+                            <ActivityIndicator color="#FFF" style={{alignSelf: 'flex-start'}}/> :
+                            <Text style={style.cardValue}>R$ {data.total}</Text>
+                        }
                     </View>
-                    <View style={style.headerCenter}>
-                        <Text style={style.locationText}>São Paulo</Text>
-                        <Text style={style.userName}>Olá, Mercado Adati</Text>
+                    <View style={style.cardIconBg}>
+                        <MaterialCommunityIcons name="finance" size={120} color="#FFFFFF" />
                     </View>
                 </View>
 
-                {/* --- BANNER --- */}
-                <View style={style.bannerCard}>
-                    <View style={style.bannerTextContainer}>
-                        <Text style={style.bannerText}>Simplificando a</Text>
-                        <Text style={style.bannerText}>gestão dos seus</Text>
-                        <Text style={style.bannerText}>negócios!</Text>
+                {/* --- GRÁFICO --- */}
+                <View style={style.sectionContainer}>
+                    <Text style={style.sectionTitle}>Desempenho Mensal</Text>
+                    <View style={style.chartCard}>
+                        <LineChart
+                            data={{
+                                labels: data.grafico.labels.length ? data.grafico.labels : ["-"],
+                                datasets: [{ data: data.grafico.datasets[0].data.length ? data.grafico.datasets[0].data : [0] }]
+                            }}
+                            width={screenWidth - 64} // Ajuste fino na largura
+                            height={220}
+                            yAxisLabel="R$"
+                            yAxisSuffix=""
+                            chartConfig={{
+                                backgroundColor: '#FFF',
+                                backgroundGradientFrom: '#FFF',
+                                backgroundGradientTo: '#FFF',
+                                decimalPlaces: 0,
+                                color: (opacity = 1) => `rgba(75, 0, 130, ${opacity})`, // Roxo
+                                labelColor: (opacity = 1) => `rgba(100, 100, 100, ${opacity})`,
+                                style: { borderRadius: 16 },
+                                propsForDots: { r: "5", strokeWidth: "2", stroke: "#4B0082" }
+                            }}
+                            bezier
+                            style={style.chartStyle}
+                            withInnerLines={false}
+                            withOuterLines={false}
+                        />
                     </View>
-                    <Image source={bannerImage} style={style.bannerImage} />
                 </View>
 
-                {/* --- ÁREA DO GRÁFICO --- */}
-                <View style={style.chartContainer}>
-                    <Text style={style.chartTitle}>Lucro Mensal</Text>
-                    <Text style={style.chartValue}>$8,545.00</Text>
+                {/* --- LISTA DE VENDAS RECENTES --- */}
+                <View style={[style.sectionContainer, { marginBottom: 40 }]}>
+                    <Text style={style.sectionTitle}>Vendas Recentes</Text>
                     
-                    <LineChart
-                        data={chartData}
-                        width={screenWidth - 40} // Largura da tela menos o padding
-                        height={220}
-                        chartConfig={{
-                            backgroundColor: '#FFFFFF',
-                            backgroundGradientFrom: '#FFFFFF',
-                            backgroundGradientTo: '#FFFFFF',
-                            decimalPlaces: 2,
-                            color: (opacity = 1) => `rgba(75, 0, 130, ${opacity})`,
-                            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                            style: {
-                                borderRadius: 16
-                            },
-                            propsForDots: {
-                                r: "6",
-                                strokeWidth: "2",
-                                stroke: "#4B0082"
-                            }
-                        }}
-                        bezier // Deixa o gráfico com curvas
-                        style={style.chart}
-                        withVerticalLines={false} // Remove linhas verticais
-                        withHorizontalLines={false} // Remove linhas horizontais
-                        withInnerLines={false}
-                        withOuterLines={false}
-                        fromZero
-                    />
+                    {data.recentes.length === 0 && !isLoading && (
+                        <Text style={{color: '#999', textAlign: 'center'}}>Nenhuma venda registrada.</Text>
+                    )}
+
+                    {data.recentes.map((venda: any, index) => (
+                        <TouchableOpacity key={index} style={style.transactionItem}>
+                            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                <View style={style.transactionIcon}>
+                                    <Feather name="shopping-bag" size={24} color="#4B0082" />
+                                </View>
+                                <View style={style.transactionInfo}>
+                                    {/* CORREÇÃO AQUI: Usando venda.cliente ou venda.id */}
+                                    <Text style={style.transactionTitle}>
+                                        {venda.cliente ? venda.cliente : `Venda #${venda.id}`}
+                                    </Text>
+                                    <Text style={style.transactionDate}>
+                                        {/* CORREÇÃO AQUI: Usando venda.data */}
+                                        {venda.data ? new Date(venda.data).toLocaleDateString('pt-BR') : 'Data desconhecida'}
+                                    </Text>
+                                </View>
+                            </View>
+                            {/* CORREÇÃO AQUI: Usando venda.valor */}
+                            <Text style={style.transactionValue}>+ R$ {venda.valor}</Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
             </ScrollView>
         </View>
     );
 }
-

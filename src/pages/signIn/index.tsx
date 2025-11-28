@@ -5,54 +5,63 @@ import { style } from './style';
 
 const blocksImage = require('../../assets/caixa.png');
 
-const SEU_IP_LOCAL = '192.168.15.3'; 
-const API_URL = 'http://192.168.15.3/relp_api';
-
+// --- CONFIGURAÇÃO DA API (PRODUÇÃO) ---
+// URL fornecida pelo Railway (com HTTPS para segurança)
+const API_URL = 'https://upbeat-creativity-production.up.railway.app';
 
 export default function SignIn({ navigation }: { navigation: any }) {
 
-    
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false); // Estado para feedback visual
 
-    
     const handleLogin = async () => {
         if (email === '' || password === '') {
             Alert.alert('Erro', 'Por favor, preencha o email e a senha.');
             return;
         }
 
+        setIsLoading(true); // Ativa o loading
+
         try {
-            
+            // Conecta na API hospedada no Railway
             const response = await fetch(`${API_URL}/login.php`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                
                 body: JSON.stringify({
                     email: email,
                     senha: password
                 })
             });
 
+            // Verifica se a requisição HTTP deu certo (código 200)
+            if (!response.ok) {
+                throw new Error(`Erro na conexão: ${response.status}`);
+            }
+
             const data = await response.json(); 
 
             if (data.success) {
-               
+                // Sucesso! Navega para a Home
                 navigation.replace('Home');
             } else {
-                
-                Alert.alert('Falha no Login', data.message);
+                // Erro de lógica (senha errada, usuário não existe)
+                Alert.alert('Falha no Login', data.message || 'Verifique seus dados.');
             }
 
         } catch (error) {
-            console.error(error);
-            Alert.alert('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique seu IP e se o XAMPP está rodando.');
+            console.error("Erro detalhado:", error);
+            Alert.alert(
+                'Erro de Conexão', 
+                'Não foi possível conectar ao servidor. Verifique sua internet.'
+            );
+        } finally {
+            setIsLoading(false); // Desativa o loading independente do resultado
         }
     };
-
 
     return (
         <View style={style.container}>
@@ -86,7 +95,7 @@ export default function SignIn({ navigation }: { navigation: any }) {
                     />
                 </View>
 
-                <Text style={style.label}>Senha do ceo</Text>
+                <Text style={style.label}>Senha do CEO</Text>
                 <View style={style.inputContainer}>
                     <Feather name="lock" size={20} color="#888" style={style.icon} />
                     <TextInput
@@ -99,9 +108,15 @@ export default function SignIn({ navigation }: { navigation: any }) {
                     />
                 </View>
 
-                {/* Chama a função handleLogin ao clicar */}
-                <TouchableOpacity style={style.signInButton} onPress={handleLogin}>
-                    <Text style={style.signInButtonText}>Entre aqui!</Text>
+                {/* Botão com feedback visual de carregamento */}
+                <TouchableOpacity 
+                    style={[style.signInButton, { opacity: isLoading ? 0.7 : 1 }]} 
+                    onPress={handleLogin}
+                    disabled={isLoading}
+                >
+                    <Text style={style.signInButtonText}>
+                        {isLoading ? 'Carregando...' : 'Entre aqui!'}
+                    </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity>
