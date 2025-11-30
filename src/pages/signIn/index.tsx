@@ -1,30 +1,37 @@
 import React, { useState } from 'react'; 
-import { View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import { 
+    View, 
+    Text, 
+    TextInput, 
+    TouchableOpacity, 
+    Alert, 
+    StatusBar,
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { style } from './style';
 
-const blocksImage = require('../../assets/caixa.png');
-
-// --- CONFIGURAÇÃO DA API (PRODUÇÃO) ---
-// URL fornecida pelo Railway (com HTTPS para segurança)
+// URL da API
 const API_URL = 'https://upbeat-creativity-production.up.railway.app';
 
 export default function SignIn({ navigation }: { navigation: any }) {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false); // Estado para feedback visual
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async () => {
         if (email === '' || password === '') {
-            Alert.alert('Erro', 'Por favor, preencha o email e a senha.');
+            Alert.alert('Campos vazios', 'Por favor, preencha seu email e senha.');
             return;
         }
 
-        setIsLoading(true); // Ativa o loading
+        setIsLoading(true);
 
         try {
-            // Conecta na API hospedada no Railway
             const response = await fetch(`${API_URL}/login.php`, {
                 method: 'POST',
                 headers: {
@@ -37,92 +44,98 @@ export default function SignIn({ navigation }: { navigation: any }) {
                 })
             });
 
-            // Verifica se a requisição HTTP deu certo (código 200)
-            if (!response.ok) {
-                throw new Error(`Erro na conexão: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
 
             const data = await response.json(); 
 
             if (data.success) {
-                // Sucesso! Navega para a Home
-                navigation.replace('Home');
+                navigation.replace('Home', { user: data.usuario });
             } else {
-                // Erro de lógica (senha errada, usuário não existe)
-                Alert.alert('Falha no Login', data.message || 'Verifique seus dados.');
+                Alert.alert('Atenção', data.message || 'Dados incorretos.');
             }
 
         } catch (error) {
-            console.error("Erro detalhado:", error);
-            Alert.alert(
-                'Erro de Conexão', 
-                'Não foi possível conectar ao servidor. Verifique sua internet.'
-            );
+            console.error("Erro:", error);
+            Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
         } finally {
-            setIsLoading(false); // Desativa o loading independente do resultado
+            setIsLoading(false);
         }
     };
 
     return (
-        <View style={style.container}>
-            <View style={style.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Feather name="arrow-left" size={28} color="#333" />
-                </TouchableOpacity>
-            </View>
-
-            <View style={style.topSection}>
-                <Text style={style.title}>FACILITANDO SUA VIDA DE CEO!</Text>
-                <Image
-                    source={blocksImage}
-                    style={style.blocksImage}
-                    resizeMode="contain"
-                />
-            </View>
-
-            <View style={style.form}>
-                <Text style={style.label}>Email ou CNPJ da empresa</Text>
-                <View style={style.inputContainer}>
-                    <Feather name="mail" size={20} color="#888" style={style.icon} />
-                    <TextInput
-                        style={style.input}
-                        placeholder="Usuario@gmail.com"
-                        placeholderTextColor="#AAA"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        value={email} 
-                        onChangeText={setEmail} 
-                    />
+        <KeyboardAvoidingView 
+            style={{ flex: 1 }} 
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+            <StatusBar barStyle="light-content" backgroundColor="#4B0082" />
+            
+            <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: '#FFF' }}>
+                
+                {/* --- CABEÇALHO CURVADO --- */}
+                <View style={style.headerContainer}>
+                    <TouchableOpacity style={style.backButton} onPress={() => navigation.goBack()}>
+                        <Feather name="arrow-left" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    
+                    <Text style={style.headerTitle}>Bem-vindo!</Text>
+                    <Text style={style.headerSubtitle}>Faça login para continuar</Text>
                 </View>
 
-                <Text style={style.label}>Senha do CEO</Text>
-                <View style={style.inputContainer}>
-                    <Feather name="lock" size={20} color="#888" style={style.icon} />
-                    <TextInput
-                        style={style.input}
-                        placeholder="••••••••••"
-                        placeholderTextColor="#AAA"
-                        secureTextEntry
-                        value={password} 
-                        onChangeText={setPassword} 
-                    />
+                {/* --- CARD FLUTUANTE DO FORMULÁRIO --- */}
+                <View style={style.formContainer}>
+                    <View style={style.card}>
+                        
+                        {/* Input Email */}
+                        <Text style={style.inputLabel}>Email ou CNPJ</Text>
+                        <View style={style.inputArea}>
+                            <Feather name="mail" size={20} color="#888" />
+                            <TextInput
+                                style={style.input}
+                                placeholder="seu@email.com"
+                                placeholderTextColor="#AAA"
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                value={email} 
+                                onChangeText={setEmail} 
+                            />
+                        </View>
+
+                        {/* Input Senha */}
+                        <Text style={style.inputLabel}>Senha</Text>
+                        <View style={style.inputArea}>
+                            <Feather name="lock" size={20} color="#888" />
+                            <TextInput
+                                style={style.input}
+                                placeholder="••••••••••"
+                                placeholderTextColor="#AAA"
+                                secureTextEntry
+                                value={password} 
+                                onChangeText={setPassword} 
+                            />
+                        </View>
+
+                        {/* Botão de Ação */}
+                        <TouchableOpacity 
+                            style={[style.signInButton, { opacity: isLoading ? 0.7 : 1 }]} 
+                            onPress={handleLogin}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <ActivityIndicator color="#FFF" />
+                            ) : (
+                                <Text style={style.signInButtonText}>Entrar</Text>
+                            )}
+                        </TouchableOpacity>
+
+                        {/* Link Esqueci Senha */}
+                        <TouchableOpacity style={style.footerLink}>
+                            <Text style={style.forgotPasswordText}>Esqueceu sua senha?</Text>
+                        </TouchableOpacity>
+
+                    </View>
                 </View>
 
-                {/* Botão com feedback visual de carregamento */}
-                <TouchableOpacity 
-                    style={[style.signInButton, { opacity: isLoading ? 0.7 : 1 }]} 
-                    onPress={handleLogin}
-                    disabled={isLoading}
-                >
-                    <Text style={style.signInButtonText}>
-                        {isLoading ? 'Carregando...' : 'Entre aqui!'}
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity>
-                    <Text style={style.forgotPasswordText}>Esqueceu sua senha?</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }

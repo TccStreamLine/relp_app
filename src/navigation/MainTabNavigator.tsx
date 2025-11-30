@@ -1,31 +1,28 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons, Feather, FontAwesome5 } from '@expo/vector-icons';
-
-// --- CORREÇÃO AQUI ---
-// Importando Text e View que estavam faltando
 import { View, Text } from 'react-native'; 
-// --- FIM DA CORREÇÃO ---
-
-// Importa sua tela Home
 import Home from '../pages/home';
 
-// --- Telas de Exemplo (agora corrigidas) ---
+// Telas de exemplo para as outras abas não quebrarem
 function CalculatorScreen() { return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text>Calculadora</Text></View>; }
 function CalendarScreen() { return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text>Calendário</Text></View>; }
 function StatsScreen() { return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text>Estatísticas</Text></View>; }
 function ProfileScreen() { return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text>Perfil</Text></View>; }
-// --- Fim das Telas de Exemplo ---
-
 
 const Tab = createBottomTabNavigator();
 
-export default function MainTabNavigator() {
+// MUDANÇA: Adicionamos { route } aqui para pegar os dados
+export default function MainTabNavigator({ route }: { route: any }) {
+  
+  // Pegamos o usuário que veio do Login
+  const { user } = route.params || {};
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false, // Esconde o cabeçalho padrão
-        tabBarShowLabel: false, // Esconde os nomes das abas
+        headerShown: false,
+        tabBarShowLabel: false, 
         tabBarStyle: { 
           backgroundColor: '#FFFFFF',
           height: 60,
@@ -33,11 +30,9 @@ export default function MainTabNavigator() {
           borderTopColor: '#EEE',
         },
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          const iconColor = focused ? '#4B0082' : '#BDBDBD'; // Roxo se focado, cinza se não
+          const iconColor = focused ? '#4B0082' : '#BDBDBD';
 
           if (route.name === 'HomeTab') {
-            // Ícone especial para Home (com a caixa)
             return (
               <View style={{
                 backgroundColor: focused ? '#4B0082' : 'transparent',
@@ -59,8 +54,13 @@ export default function MainTabNavigator() {
         },
       })}
     >
-      {/* Estas são as 5 abas */}
-      <Tab.Screen name="HomeTab" component={Home} />
+      {/* MUDANÇA CRUCIAL: initialParams passa o usuário para dentro da Home */}
+      <Tab.Screen 
+        name="HomeTab" 
+        component={Home} 
+        initialParams={{ user: user }} 
+      />
+      
       <Tab.Screen name="Calculator" component={CalculatorScreen} />
       <Tab.Screen name="Calendar" component={CalendarScreen} />
       <Tab.Screen name="Stats" component={StatsScreen} />

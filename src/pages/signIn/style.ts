@@ -1,86 +1,117 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
+const { width, height } = Dimensions.get('window');
+
 export const style = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
     },
-    header: {
-        paddingTop: 50,
-        paddingHorizontal: 20,
-        backgroundColor: '#E9E3FF',
+    // --- Cabeçalho Roxo ---
+    headerContainer: {
+        backgroundColor: '#4B0082',
+        height: height * 0.35, // 35% da altura da tela
+        borderBottomLeftRadius: 40,
+        borderBottomRightRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingBottom: 30,
+        elevation: 10,
+        shadowColor: '#4B0082',
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
     },
-    topSection: {
-        backgroundColor: '#E9E3FF',
-        paddingHorizontal: 20,
-        paddingBottom: 60,
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
-        position: 'relative',
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#4B0082',
-        width: '60%',
-        marginTop: 20,
-    },
-    
-    
-    blocksImage: {
-        
-        width: 150, 
-        height: 250, 
+    backButton: {
         position: 'absolute',
-        right: 15,
-        top: 30,
-        transform: [{ rotate: '15deg' }]
+        top: 50,
+        left: 25,
+        zIndex: 10,
+        padding: 8,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 12,
+    },
+    headerTitle: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#FFF',
+        marginBottom: 5,
+    },
+    headerSubtitle: {
+        fontSize: 16,
+        color: 'rgba(255,255,255,0.8)',
+    },
+
+    // --- Área do Formulário ---
+    formContainer: {
+        flex: 1,
+        marginTop: -40, // Faz o formulário "subir" por cima do roxo
+        paddingHorizontal: 30,
+    },
+    card: {
+        backgroundColor: '#FFF',
+        borderRadius: 24,
+        padding: 30,
+        elevation: 5, // Sombra suave
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
     },
     
-
-    form: {
-        flex: 1,
-        padding: 30,
-        marginTop: 10,
-    },
-    label: {
-        fontSize: 16,
-        color: '#666',
+    // --- Inputs ---
+    inputLabel: {
+        fontSize: 14,
+        color: '#4B0082',
+        fontWeight: '600',
         marginBottom: 8,
+        marginTop: 15,
     },
-    inputContainer: {
+    inputArea: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-        marginBottom: 25,
-    },
-    icon: {
-        marginRight: 10,
+        backgroundColor: '#F3EFFF', // Fundo roxo bem clarinho para o input
+        borderRadius: 12,
+        paddingHorizontal: 15,
+        height: 55,
+        borderWidth: 1,
+        borderColor: 'transparent', // Pode mudar para roxo ao focar (se quiser)
     },
     input: {
         flex: 1,
         fontSize: 16,
-        paddingVertical: 10,
         color: '#333',
+        marginLeft: 10,
     },
+    icon: {
+        color: '#888',
+    },
+
+    // --- Botão Entrar ---
     signInButton: {
         backgroundColor: '#4B0082',
-        paddingVertical: 15,
-        borderRadius: 50,
+        borderRadius: 16,
+        height: 60,
+        justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 30,
         elevation: 5,
+        shadowColor: '#4B0082',
+        shadowOpacity: 0.4,
+        shadowOffset: { width: 0, height: 4 },
     },
     signInButtonText: {
-        color: '#fff',
+        color: '#FFF',
         fontSize: 18,
         fontWeight: 'bold',
     },
-    forgotPasswordText: {
-        textAlign: 'center',
+
+    // --- Rodapé ---
+    footerLink: {
         marginTop: 20,
-        color: '#4B0082',
-        fontWeight: '600',
+        alignItems: 'center',
+    },
+    forgotPasswordText: {
+        color: '#888',
+        fontSize: 14,
     },
 });
