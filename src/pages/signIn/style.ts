@@ -111,7 +111,8 @@ export const style = StyleSheet.create({
         alignItems: 'center',
     },
     forgotPasswordText: {
-        color: '#888',
+        color: '#4B0082',
         fontSize: 14,
+        fontWeight: 'bold'
     },
 });

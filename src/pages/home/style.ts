@@ -36,8 +36,6 @@ export const style = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
     },
-    
-    // --- Ícone de Perfil ---
     profileIconContainer: {
         width: 50,
         height: 50,
@@ -47,10 +45,10 @@ export const style = StyleSheet.create({
         justifyContent: 'center',
     },
     
-    // --- MODAL DE PERFIL (NOVO) ---
+    // Modal
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)', // Fundo escuro transparente
+        backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -61,9 +59,6 @@ export const style = StyleSheet.create({
         padding: 30,
         alignItems: 'center',
         elevation: 10,
-        shadowColor: '#000',
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
     },
     modalIconContainer: {
         marginBottom: 20,
@@ -82,7 +77,7 @@ export const style = StyleSheet.create({
         textAlign: 'center',
     },
     logoutButton: {
-        backgroundColor: '#FF3B30', // Vermelho para indicar ação de sair
+        backgroundColor: '#FF3B30',
         paddingVertical: 12,
         paddingHorizontal: 40,
         borderRadius: 25,
@@ -95,7 +90,7 @@ export const style = StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    // --- Cartão Principal ---
+    // Dashboard
     mainCard: {
         backgroundColor: '#4B0082',
         borderRadius: 24,
@@ -125,8 +120,6 @@ export const style = StyleSheet.create({
         top: -20,
         opacity: 0.1,
     },
-
-    // --- Seção do Gráfico ---
     sectionContainer: {
         paddingHorizontal: 24,
         marginBottom: 24,
@@ -142,9 +135,6 @@ export const style = StyleSheet.create({
         borderRadius: 16,
         padding: 16,
         elevation: 2,
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
         alignItems: 'center',
     },
     chartStyle: {
@@ -165,8 +155,6 @@ export const style = StyleSheet.create({
         fontSize: 12,
         fontWeight: 'bold',
     },
-
-    // --- Lista de Transações ---
     transactionItem: {
         backgroundColor: '#FFF',
         borderRadius: 16,
@@ -175,10 +163,6 @@ export const style = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         elevation: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
     },
     transactionIcon: {
         width: 48,
@@ -189,7 +173,7 @@ export const style = StyleSheet.create({
         justifyContent: 'center',
     },
     transactionInfo: {
-        flex: 1, 
+        flex: 1,
         marginLeft: 16,
         marginRight: 12,
     },
