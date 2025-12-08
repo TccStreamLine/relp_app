@@ -45,22 +45,25 @@ export const style = StyleSheet.create({
         justifyContent: 'center',
     },
     
-    // Modal
+    // --- MODAL GENÉRICO (Fundo Escuro) ---
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.6)', // Um pouco mais escuro
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalContent: {
-        width: '80%',
+        width: '85%',
         backgroundColor: '#FFF',
         borderRadius: 20,
-        padding: 30,
-        alignItems: 'center',
+        padding: 25,
         elevation: 10,
+        maxHeight: '80%', // Evita que o modal estoure a tela
     },
+    
+    // --- Estilos Específicos do Modal de Perfil ---
     modalIconContainer: {
+        alignItems: 'center',
         marginBottom: 20,
     },
     modalTitle: {
@@ -90,7 +93,65 @@ export const style = StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    // Dashboard
+    // --- Estilos Específicos do Modal de Venda (NOVO) ---
+    detailHeader: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEE',
+        paddingBottom: 15,
+        marginBottom: 15,
+    },
+    detailLabel: {
+        fontSize: 12,
+        color: '#888',
+        textTransform: 'uppercase',
+        marginTop: 10,
+    },
+    detailValue: {
+        fontSize: 16,
+        color: '#333',
+        fontWeight: '500',
+    },
+    detailProductItem: {
+        backgroundColor: '#F3F5F7',
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 10,
+    },
+    productName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#4B0082',
+        marginBottom: 5,
+    },
+    stockRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 5,
+    },
+    stockBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        overflow: 'hidden',
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#FFF',
+    },
+    stockNormal: { backgroundColor: '#4CD964' }, // Verde
+    stockLow: { backgroundColor: '#FF9500' },    // Laranja
+    closeButton: {
+        marginTop: 20,
+        backgroundColor: '#4B0082',
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    closeButtonText: {
+        color: '#EEE',
+        fontWeight: 'bold',
+    },
+
+    // --- Dashboard e Listas ---
     mainCard: {
         backgroundColor: '#4B0082',
         borderRadius: 24,
@@ -173,7 +234,7 @@ export const style = StyleSheet.create({
         justifyContent: 'center',
     },
     transactionInfo: {
-        flex: 1,
+        flex: 1, 
         marginLeft: 16,
         marginRight: 12,
     },

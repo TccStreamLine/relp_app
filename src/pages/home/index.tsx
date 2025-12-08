@@ -19,14 +19,27 @@ import { style } from './style';
 
 const screenWidth = Dimensions.get('window').width;
 
-// URL da API
 const API_URL = 'https://upbeat-creativity-production.up.railway.app'; 
 
+// --- Tipagens ---
 interface Venda {
     id: number;
     valor_total: string;
     data_venda: string;
     cliente?: string;
+}
+
+interface ProdutoDetalhe {
+    nome: string;
+    qtd_vendida: number;
+    valor_unitario: string;
+    quantidade_estoque: number;
+    quantidade_minima: number;
+}
+
+interface VendaDetalhada {
+    venda: { id: number; descricao: string; data_venda: string };
+    produtos: ProdutoDetalhe[];
 }
 
 interface DashboardData {
@@ -39,7 +52,6 @@ interface DashboardData {
 }
 
 export default function Home({ navigation, route }: { navigation: any, route: any }) {
-    // Dados do usuário
     const { user } = route.params || {};
     const nomeEmpresa = user?.nome_empresa || "Visitante";
     const cnpjEmpresa = user?.cnpj || "CNPJ não informado";
@@ -48,18 +60,19 @@ export default function Home({ navigation, route }: { navigation: any, route: an
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     
-    // Estado do Modal
-    const [modalVisible, setModalVisible] = useState(false);
+    // Modais
+    const [profileModalVisible, setProfileModalVisible] = useState(false);
+    const [detailModalVisible, setDetailModalVisible] = useState(false);
+    const [loadingDetail, setLoadingDetail] = useState(false);
     
-    // Estado do Gráfico
+    // Dados
     const [selectedPoint, setSelectedPoint] = useState<{value: number, index: number} | null>(null);
-
-    // Dados da Dashboard
     const [data, setData] = useState<DashboardData>({
         total: '0,00',
         grafico: { labels: [], datasets: [{ data: [0] }] },
         recentes: [] 
     });
+    const [saleDetail, setSaleDetail] = useState<VendaDetalhada | null>(null);
 
     // Animações
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -75,8 +88,7 @@ export default function Home({ navigation, route }: { navigation: any, route: an
     };
 
     const fetchData = async () => {
-        if (!userId) return; // Se não tiver ID, não busca
-
+        if (!userId) return;
         try {
             const response = await fetch(`${API_URL}/dashboard_api.php?id=${userId}`);
             const json = await response.json();
@@ -88,14 +100,34 @@ export default function Home({ navigation, route }: { navigation: any, route: an
                     recentes: json.vendas_recentes || []
                 });
                 startAnimation();
-            } else {
-                console.log("Erro API:", json.error);
             }
         } catch (error) {
             console.error("Erro Fetch:", error);
         } finally {
             setIsLoading(false);
             setRefreshing(false);
+        }
+    };
+
+    // Função para carregar detalhes da venda ao clicar
+    const handleVendaClick = async (vendaId: number) => {
+        setLoadingDetail(true);
+        setDetailModalVisible(true); // Abre o modal com loading
+        try {
+            const response = await fetch(`${API_URL}/detalhes_venda.php?id=${vendaId}`);
+            const json = await response.json();
+            
+            if (json.success) {
+                setSaleDetail({ venda: json.venda, produtos: json.produtos });
+            } else {
+                setDetailModalVisible(false);
+                alert("Erro ao carregar detalhes");
+            }
+        } catch (error) {
+            console.error(error);
+            setDetailModalVisible(false);
+        } finally {
+            setLoadingDetail(false);
         }
     };
 
@@ -111,49 +143,41 @@ export default function Home({ navigation, route }: { navigation: any, route: an
     };
 
     const handleLogout = () => {
-        setModalVisible(false);
+        setProfileModalVisible(false);
         navigation.replace('Login'); 
     };
 
     return (
         <View style={style.container}>
-            {/* --- CABEÇALHO --- */}
+            {/* Header */}
             <View style={style.header}>
                 <View style={style.headerTextContainer}>
                     <Text style={style.welcomeText}>Bem-vindo de volta,</Text>
                     <Text style={style.userName}>{nomeEmpresa}</Text>
                 </View>
-                
-                <TouchableOpacity 
-                    style={style.profileIconContainer}
-                    onPress={() => setModalVisible(true)}
-                >
+                <TouchableOpacity style={style.profileIconContainer} onPress={() => setProfileModalVisible(true)}>
                     <Ionicons name="person" size={28} color="#A0A0A0" />
                 </TouchableOpacity>
             </View>
 
-            {/* --- CONTEÚDO DA DASHBOARD (COM SCROLL) --- */}
             <ScrollView 
                 showsVerticalScrollIndicator={false}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#4B0082']} />}
             >
                 <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
                     
-                    {/* 1. Cartão Total */}
+                    {/* Card Total */}
                     <View style={style.mainCard}>
                         <View>
                             <Text style={style.cardLabel}>Faturamento Total</Text>
-                            {isLoading ? 
-                                <ActivityIndicator color="#FFF" style={{alignSelf: 'flex-start'}}/> :
-                                <Text style={style.cardValue}>R$ {data.total}</Text>
-                            }
+                            {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={style.cardValue}>R$ {data.total}</Text>}
                         </View>
                         <View style={style.cardIconBg}>
                             <MaterialCommunityIcons name="finance" size={120} color="#FFFFFF" />
                         </View>
                     </View>
 
-                    {/* 2. Gráfico */}
+                    {/* Gráfico */}
                     <View style={style.sectionContainer}>
                         <Text style={style.sectionTitle}>Vendas da Semana (7 Dias)</Text>
                         <View style={style.chartCard}>
@@ -193,23 +217,25 @@ export default function Home({ navigation, route }: { navigation: any, route: an
                                     fromZero
                                 />
                             ) : (
-                                <View style={{height: 220, justifyContent: 'center', alignItems: 'center'}}>
+                                <View style={{height: 220, justifyContent: 'center'}}>
                                     {isLoading ? <ActivityIndicator color="#4B0082" /> : <Text style={{color: '#999'}}>Sem dados nesta semana</Text>}
                                 </View>
                             )}
                         </View>
                     </View>
 
-                    {/* 3. Lista de Transações */}
+                    {/* Lista de Vendas (Clicável) */}
                     <View style={[style.sectionContainer, { marginBottom: 40 }]}>
                         <Text style={style.sectionTitle}>Últimas Transações</Text>
                         
-                        {data.recentes.length === 0 && !isLoading && (
-                            <Text style={{color: '#999', textAlign: 'center', marginTop: 10}}>Nenhuma venda recente.</Text>
-                        )}
+                        {data.recentes.length === 0 && !isLoading && <Text style={{color: '#999', textAlign: 'center'}}>Nenhuma venda recente.</Text>}
 
                         {data.recentes.map((venda, index) => (
-                            <TouchableOpacity key={index} style={style.transactionItem}>
+                            <TouchableOpacity 
+                                key={index} 
+                                style={style.transactionItem}
+                                onPress={() => handleVendaClick(venda.id)} // Ao clicar, abre detalhes
+                            >
                                 <View style={style.transactionIcon}>
                                     <Feather name="shopping-bag" size={24} color="#4B0082" />
                                 </View>
@@ -219,38 +245,89 @@ export default function Home({ navigation, route }: { navigation: any, route: an
                                         {venda.data_venda ? new Date(venda.data_venda).toLocaleDateString('pt-BR') : '-'}
                                     </Text>
                                 </View>
-                                <Text style={style.transactionValue} numberOfLines={1}>+ R$ {venda.valor_total}</Text>
+                                <Text style={style.transactionValue}>+ R$ {venda.valor_total}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
                 </Animated.View>
             </ScrollView>
 
-            {/* --- MODAL DE PERFIL (FORA DO SCROLLVIEW) --- */}
+            {/* --- MODAL 1: PERFIL --- */}
             <Modal
                 animationType="fade"
                 transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+                visible={profileModalVisible}
+                onRequestClose={() => setProfileModalVisible(false)}
             >
-                <TouchableOpacity 
-                    style={style.modalOverlay} 
-                    activeOpacity={1} 
-                    onPress={() => setModalVisible(false)}
-                >
+                <TouchableOpacity style={style.modalOverlay} activeOpacity={1} onPress={() => setProfileModalVisible(false)}>
                     <View style={style.modalContent} onStartShouldSetResponder={() => true}>
                         <View style={style.modalIconContainer}>
                              <Ionicons name="person-circle" size={80} color="#ccc" />
                         </View>
                         <Text style={style.modalTitle}>{nomeEmpresa}</Text>
                         <Text style={style.modalSubtitle}>CNPJ: {cnpjEmpresa}</Text>
-
                         <TouchableOpacity style={style.logoutButton} onPress={handleLogout}>
                             <Text style={style.logoutText}>Sair da Conta</Text>
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
             </Modal>
+
+            {/* --- MODAL 2: DETALHES DA VENDA (NOVO) --- */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={detailModalVisible}
+                onRequestClose={() => setDetailModalVisible(false)}
+            >
+                <TouchableOpacity style={style.modalOverlay} activeOpacity={1} onPress={() => setDetailModalVisible(false)}>
+                    <View style={style.modalContent} onStartShouldSetResponder={() => true}>
+                        
+                        {loadingDetail ? (
+                            <ActivityIndicator size="large" color="#4B0082" />
+                        ) : saleDetail ? (
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                <Text style={style.modalTitle}>Detalhes da Venda #{saleDetail.venda.id}</Text>
+                                
+                                <View style={style.detailHeader}>
+                                    <Text style={style.detailLabel}>Descrição</Text>
+                                    <Text style={style.detailValue}>{saleDetail.venda.descricao || "Sem descrição"}</Text>
+
+                                    <Text style={style.detailLabel}>Data</Text>
+                                    <Text style={style.detailValue}>{new Date(saleDetail.venda.data_venda).toLocaleString('pt-BR')}</Text>
+                                </View>
+
+                                <Text style={[style.sectionTitle, {fontSize: 16, marginBottom: 10}]}>Produtos Vendidos</Text>
+
+                                {saleDetail.produtos.map((prod, idx) => (
+                                    <View key={idx} style={style.detailProductItem}>
+                                        <Text style={style.productName}>{prod.nome}</Text>
+                                        <Text style={{color: '#555'}}>Qtd Vendida: {prod.qtd_vendida} un.</Text>
+                                        
+                                        <View style={style.stockRow}>
+                                            <Text style={{fontSize: 12, color: '#888'}}>Estoque Restante:</Text>
+                                            {/* Lógica visual para estoque baixo */}
+                                            <Text style={[
+                                                style.stockBadge, 
+                                                prod.quantidade_estoque <= prod.quantidade_minima ? style.stockLow : style.stockNormal
+                                            ]}>
+                                                {prod.quantidade_estoque} (Mín: {prod.quantidade_minima})
+                                            </Text>
+                                        </View>
+                                    </View>
+                                ))}
+
+                                <TouchableOpacity style={style.closeButton} onPress={() => setDetailModalVisible(false)}>
+                                    <Text style={style.closeButtonText}>Fechar</Text>
+                                </TouchableOpacity>
+                            </ScrollView>
+                        ) : (
+                            <Text>Erro ao carregar detalhes.</Text>
+                        )}
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
         </View>
     );
 }
